@@ -841,7 +841,7 @@ body {
     <div class="timer-bar-wrap">
       <div class="timer-bar" id="timer-bar"></div>
     </div>
-    <div class="timer-text" id="timer-text">20</div>
+    <div class="timer-text" id="timer-text">30</div>
     <div class="card question-card">
       <div class="question-text" id="question-text">Câu hỏi sẽ hiển thị ở đây…</div>
       <div class="options-grid" id="options-grid"></div>
@@ -893,9 +893,9 @@ body {
         <span class="ring-pct" id="ring-pct">80%</span>
       </div>
       <div class="result-actions">
-        <button class="btn-primary" id="btn-review">📋 Xem đáp án</button>
-        <button class="btn-ghost" id="btn-retry">🔄 Chơi lại</button>
-        <button class="btn-ghost" id="btn-home-result">🏠 Trang chủ</button>
+        <button class="btn-primary" id="btn-review">Xem đáp án</button>
+        <button class="btn-ghost" id="btn-retry">Chơi lại</button>
+        <button class="btn-ghost" id="btn-home-result">Trang chủ</button>
       </div>
     </div>
   </section>
@@ -961,7 +961,7 @@ const QUESTIONS = [
 ];
 
 const LETTERS     = ['A', 'B', 'C'];
-const TIME_LIMIT  = 20;
+const TIME_LIMIT  = 30;
 const LS_KEY      = 'dhvi_leaderboard';
 const LS_MEMBERS  = 'dhvi_members';
 
@@ -1290,18 +1290,94 @@ $('btn-back-result').addEventListener('click', () => showScreen('result'));
 $('btn-retry').addEventListener('click', startQuiz);
 $('btn-home-result').addEventListener('click', () => showScreen('home'));
 
+/* ── FIREBASE CONFIG ── */
+// 🔧 HƯỚNG DẪN: Thay thế các giá trị bên dưới bằng config Firebase của bạn
+// Xem file HUONG_DAN_FIREBASE.md để biết cách lấy config
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyA7NGXyK5ECTfD68v1dS1IkJ4nngr4kAgA",
+  authDomain:        "dcsz-1162a.firebaseapp.com.firebaseapp.com",
+  databaseURL:       "https://dcsz-1162a-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  projectId:         "dcsz-1162a",
+  storageBucket:     "dcsz-1162a.firebasestorage.app",
+  messagingSenderId: "793711677129",
+  appId:             "1:793711677129:web:71f2f5790a7a0f86630718"
+};
+
+// Khởi tạo Firebase
+let db = null;
+let firebaseReady = false;
+
+(async function initFirebase() {
+  try {
+    const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+    const { getDatabase, ref, push, query, orderByChild, limitToLast, get, serverTimestamp }
+      = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js');
+
+    const app = initializeApp(FIREBASE_CONFIG);
+    db = getDatabase(app);
+    window._fbRef               = ref;
+    window._fbPush              = push;
+    window._fbQuery             = query;
+    window._fbOrderByChild      = orderByChild;
+    window._fbLimitToLast       = limitToLast;
+    window._fbGet               = get;
+    window._fbServerTimestamp   = serverTimestamp;
+    firebaseReady = true;
+    console.log('✅ Firebase đã kết nối');
+  } catch (e) {
+    console.warn('⚠️ Firebase không kết nối được, dùng localStorage:', e);
+  }
+})();
+
 /* ── LEADERBOARD ── */
-function saveScore(entry) {
+async function saveScore(entry) {
+  const record = {
+    ...entry,
+    date: new Date().toLocaleDateString('vi-VN')
+  };
+
+  // Lưu lên Firebase (chia sẻ cho mọi người)
+  if (firebaseReady && db) {
+    try {
+      const scoresRef = window._fbRef(db, 'leaderboard');
+      await window._fbPush(scoresRef, { ...record, ts: window._fbServerTimestamp() });
+    } catch (e) {
+      console.warn('Lưu Firebase thất bại:', e);
+    }
+  }
+
+  // Luôn lưu localStorage dự phòng
   let lb = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-  lb.push({ ...entry, date: new Date().toLocaleDateString('vi-VN') });
+  lb.push(record);
   lb.sort((a, b) => b.score - a.score || a.time - b.time);
   lb = lb.slice(0, 20);
   localStorage.setItem(LS_KEY, JSON.stringify(lb));
 }
 
-function renderLeaderboard() {
-  const lb   = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+async function renderLeaderboard() {
   const list = $('lb-list');
+  list.innerHTML = '<p style="color:var(--text-muted);padding:2rem 0">⏳ Đang tải bảng xếp hạng…</p>';
+
+  let lb = [];
+
+  if (firebaseReady && db) {
+    try {
+      const scoresRef = window._fbRef(db, 'leaderboard');
+      const q         = window._fbQuery(scoresRef, window._fbOrderByChild('score'), window._fbLimitToLast(50));
+      const snapshot  = await window._fbGet(q);
+      if (snapshot.exists()) {
+        const raw = [];
+        snapshot.forEach(child => raw.push(child.val()));
+        lb = raw.sort((a, b) => b.score - a.score || a.time - b.time).slice(0, 20);
+      }
+    } catch (e) {
+      console.warn('Đọc Firebase thất bại, dùng localStorage:', e);
+      lb = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+    }
+  } else {
+    lb = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+  }
+
   list.innerHTML = '';
   if (!lb.length) {
     list.innerHTML = '<p style="color:var(--text-muted);padding:2rem 0">Chưa có kết quả nào. Hãy chơi ngay!</p>';
