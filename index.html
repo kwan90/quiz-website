@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuizMaster – Thử thách kiến thức của bạn</title>
+  <meta name="description" content="Tham gia QuizMaster – game quiz trắc nghiệm thú vị với nhiều chủ đề, tính điểm theo thời gian thực, và bảng xếp hạng hấp dẫn." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===== BACKGROUND ANIMATION ===== -->
+  <div class="bg-anim" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="particles" id="particles"></div>
+  </div>
+
+  <!-- ===== SCREENS ===== -->
+
+  <!-- SCREEN 1: HOME -->
+  <section class="screen active" id="screen-home">
+    <div class="card home-card">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <h1 class="logo-text">QuizMaster</h1>
+      </div>
+      <p class="subtitle">Thử thách kiến thức – Vượt qua giới hạn bản thân</p>
+
+      <div class="category-grid">
+        <button class="cat-btn active" data-category="all" id="cat-all">🌟 Tất cả</button>
+        <button class="cat-btn" data-category="science" id="cat-science">🔬 Khoa học</button>
+        <button class="cat-btn" data-category="history" id="cat-history">📜 Lịch sử</button>
+        <button class="cat-btn" data-category="geography" id="cat-geography">🌍 Địa lý</button>
+        <button class="cat-btn" data-category="tech" id="cat-tech">💻 Công nghệ</button>
+        <button class="cat-btn" data-category="math" id="cat-math">🔢 Toán học</button>
+      </div>
+
+      <div class="difficulty-row">
+        <span class="label">Độ khó:</span>
+        <button class="diff-btn active" data-diff="easy" id="diff-easy">Dễ</button>
+        <button class="diff-btn" data-diff="medium" id="diff-medium">Trung bình</button>
+        <button class="diff-btn" data-diff="hard" id="diff-hard">Khó</button>
+      </div>
+
+      <div class="settings-row">
+        <div class="setting-item">
+          <label for="num-questions">Số câu hỏi</label>
+          <select id="num-questions">
+            <option value="5">5 câu</option>
+            <option value="10" selected>10 câu</option>
+            <option value="15">15 câu</option>
+            <option value="20">20 câu</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <label for="time-limit">Thời gian / câu</label>
+          <select id="time-limit">
+            <option value="10">10 giây</option>
+            <option value="15" selected>15 giây</option>
+            <option value="20">20 giây</option>
+            <option value="30">30 giây</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="name-row">
+        <input type="text" id="player-name" placeholder="Nhập tên của bạn…" maxlength="20" autocomplete="off" />
+      </div>
+
+      <button class="btn-primary pulse" id="btn-start">
+        <span>Bắt đầu Quiz</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 6.82v10.36c0 .79.87 1.27 1.54.84l8.14-5.18c.62-.39.62-1.29 0-1.69L9.54 5.98C8.87 5.55 8 6.03 8 6.82z"/></svg>
+      </button>
+
+      <button class="btn-ghost" id="btn-leaderboard">
+        🏆 Bảng xếp hạng
+      </button>
+    </div>
+  </section>
+
+  <!-- SCREEN 2: QUIZ -->
+  <section class="screen" id="screen-quiz">
+    <div class="quiz-header">
+      <div class="q-meta">
+        <span class="q-number" id="q-number">Câu 1/10</span>
+        <span class="q-category" id="q-category-badge">🔬 Khoa học</span>
+      </div>
+      <div class="score-display">
+        <span class="score-label">Điểm</span>
+        <span class="score-value" id="live-score">0</span>
+      </div>
+    </div>
+
+    <div class="timer-bar-wrap">
+      <div class="timer-bar" id="timer-bar"></div>
+    </div>
+    <div class="timer-text" id="timer-text">15</div>
+
+    <div class="card question-card">
+      <div class="question-text" id="question-text">
+        Câu hỏi sẽ hiển thị ở đây…
+      </div>
+      <div class="options-grid" id="options-grid">
+        <!-- injected by JS -->
+      </div>
+    </div>
+
+    <div class="quiz-footer">
+      <button class="btn-ghost btn-small" id="btn-quit">⬅ Thoát</button>
+      <div class="progress-dots" id="progress-dots"></div>
+      <button class="btn-ghost btn-small" id="btn-next" style="visibility:hidden">Tiếp theo ➡</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 3: RESULT -->
+  <section class="screen" id="screen-result">
+    <div class="card result-card">
+      <div class="result-emoji" id="result-emoji">🏆</div>
+      <h2 class="result-title" id="result-title">Xuất sắc!</h2>
+      <p class="result-sub" id="result-sub">Bạn đã trả lời đúng 8/10 câu</p>
+
+      <div class="stat-grid">
+        <div class="stat-item">
+          <span class="stat-num" id="stat-score">800</span>
+          <span class="stat-label">Tổng điểm</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num" id="stat-correct">8</span>
+          <span class="stat-label">Đúng</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num" id="stat-wrong">2</span>
+          <span class="stat-label">Sai</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num" id="stat-time">45s</span>
+          <span class="stat-label">Thời gian</span>
+        </div>
+      </div>
+
+      <div class="score-ring-wrap">
+        <svg class="score-ring" viewBox="0 0 120 120" width="120" height="120">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="10"/>
+          <circle cx="60" cy="60" r="50" fill="none" stroke="url(#scoreGrad)" stroke-width="10"
+                  stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314"
+                  id="score-circle" transform="rotate(-90 60 60)"/>
+          <defs>
+            <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#a78bfa"/>
+              <stop offset="100%" stop-color="#38bdf8"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span class="ring-pct" id="ring-pct">80%</span>
+      </div>
+
+      <div class="result-actions">
+        <button class="btn-primary" id="btn-review">📋 Xem đáp án</button>
+        <button class="btn-ghost" id="btn-retry">🔄 Chơi lại</button>
+        <button class="btn-ghost" id="btn-home-result">🏠 Trang chủ</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREEN 4: REVIEW -->
+  <section class="screen" id="screen-review">
+    <div class="review-header">
+      <h2>📋 Xem lại đáp án</h2>
+      <button class="btn-ghost btn-small" id="btn-back-result">⬅ Quay lại</button>
+    </div>
+    <div class="review-list" id="review-list">
+      <!-- injected -->
+    </div>
+  </section>
+
+  <!-- SCREEN 5: LEADERBOARD -->
+  <section class="screen" id="screen-leaderboard">
+    <div class="card leaderboard-card">
+      <h2>🏆 Bảng xếp hạng</h2>
+      <div class="lb-list" id="lb-list">
+        <!-- injected -->
+      </div>
+      <button class="btn-ghost" id="btn-back-home" style="margin-top:1.5rem">⬅ Quay lại</button>
+    </div>
+  </section>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast" id="toast"></div>
+
+  <!-- CONFETTI CANVAS -->
+  <canvas id="confetti-canvas" aria-hidden="true"></canvas>
+
+  <script src="script.js"></script>
+</body>
+</html>
