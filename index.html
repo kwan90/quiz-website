@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Quiz Đại hội VI – Nhóm thuyết trình số 5</title>
-  <meta name="description" content="20 câu trắc nghiệm về Đại hội VI do Nhóm thuyết trình số 5 biên soạn." />
+  <meta name="description" content="Nhóm thuyết trình số 5." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
 <style>
@@ -43,13 +43,26 @@ html { scroll-behavior: smooth; }
 
 body {
   font-family: var(--font);
-  background: var(--bg);
+  background: #0d0000;
   color: var(--text);
   min-height: 100vh;
   overflow-x: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* ---- VIDEO BACKGROUND ---- */
+#video-bg {
+  position: fixed; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  z-index: -1;
+  pointer-events: none;
+  transition: filter 0.6s ease, opacity 0.6s ease;
+}
+#video-bg.blurred {
+  filter: blur(12px) brightness(0.35);
 }
 
 /* ---- ANIMATED BACKGROUND ---- */
@@ -110,8 +123,8 @@ body {
 /* ---- CARD ---- */
 .card {
   background: rgba(18,18,30,0.88);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
@@ -775,6 +788,11 @@ body {
 </head>
 <body>
 
+  <!-- ===== VIDEO BACKGROUND ===== -->
+  <video id="video-bg" autoplay muted loop playsinline>
+    <source src="codang.mp4" type="video/mp4">
+  </video>
+
   <!-- ===== BACKGROUND ANIMATION ===== -->
   <div class="bg-anim" aria-hidden="true">
     <div class="orb orb-1"></div>
@@ -787,10 +805,9 @@ body {
   <section class="screen active" id="screen-home">
     <div class="card home-card">
       <div class="logo">
-        <span class="logo-icon">🏛️</span>
+        <span class="logo-icon"></span>
         <h1 class="logo-text">Đại hội VI</h1>
       </div>
-      <p class="subtitle">20 câu trắc nghiệm ôn tập</p>
       <div class="group-badge">📚 Nhóm thuyết trình số 5</div>
       <div class="members-section" id="members-section">
         <div class="members-header">
@@ -976,6 +993,13 @@ function showScreen(name) {
   Object.values(screens).forEach(s => s.classList.remove('active'));
   screens[name].classList.add('active');
   screens[name].scrollTop = 0;
+  // Làm mờ video khi đang chơi quiz
+  const videoBg = document.getElementById('video-bg');
+  if (name === 'quiz') {
+    videoBg.classList.add('blurred');
+  } else {
+    videoBg.classList.remove('blurred');
+  }
 }
 
 function shuffle(arr) {
